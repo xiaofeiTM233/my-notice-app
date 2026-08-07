@@ -1,0 +1,7 @@
+namespace WinNotify
+{
+    runtimeclass MainWindow : Microsoft.UI.Xaml.Window
+    {
+        MainWindow();
+    }
+}

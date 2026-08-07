@@ -1,0 +1,28 @@
+{
+  "backend": {
+    "type": "websocket",
+    "url": "ws://127.0.0.1:9001/ws",
+    "pollIntervalSec": 30
+  },
+  "popup": {
+    "enabled": true,
+    "durationSec": 6,
+    "width": 380,
+    "maxStack": 5
+  },
+  "sound": {
+    "enabled": false
+  },
+  "startMinimized": true,
+  "history": {
+    "maxItems": 500
+  },
+  "filters": [
+    {
+      "pattern": "spam",
+      "enabled": true,
+      "block": true
+    }
+  ],
+  "mutedCategories": []
+}

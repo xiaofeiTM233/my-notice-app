@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="core">
+      <UniqueIdentifier>{6E2B1B80-1B6C-4E7F-9A0B-2C3D4E5F6A7B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets">
+      <UniqueIdentifier>{7F3C2C91-2C7D-4F8E-9B1C-3D4E5F6A7B8C}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="core\Config.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\NotifyItem.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\NotifyCenter.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\BackendClient.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\Toast.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\ToastMgr.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\TrayIcon.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\Util.h">
+      <Filter>core</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="core\Config.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="core\NotifyItem.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="core\NotifyCenter.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="core\BackendClient.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="core\Toast.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="core\ToastMgr.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="core\TrayIcon.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="core\Util.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
