@@ -1,0 +1,431 @@
+import { Theme } from "theme.slint";
+import { ListView } from "std-widgets.slint";
+
+// 列表行。head = true 时表示分组标题行，此时只有 title 有意义。
+export struct Row {
+    id: string,
+    title: string,
+    body: string,
+    src: string,
+    time: string,
+    mark: string,
+    tag: string,
+    cat: int,
+    prio: int,
+    read: bool,
+    head: bool,
+    act: bool,
+}
+
+component Chip inherits Rectangle {
+    in property <string> label;
+    in property <bool> on;
+    callback picked();
+
+    height: 26px;
+    width: t.preferred-width + 24px;
+    border-radius: 13px;
+    background: root.on ? Theme.accent : (ta.has-hover ? Theme.hover : Theme.panel);
+    animate background { duration: 120ms; }
+
+    t := Text {
+        text: root.label;
+        font-size: 12px;
+        color: root.on ? #ffffff : Theme.fg2;
+    }
+    ta := TouchArea {
+        mouse-cursor: MouseCursor.pointer;
+        clicked => { root.picked(); }
+    }
+}
+
+component IconBtn inherits Rectangle {
+    in property <string> glyph;
+    in property <length> fs: 15px;
+    in property <color> tint: Theme.fg2;
+    out property <bool> hover: ta.has-hover;
+    callback picked();
+
+    width: 28px;
+    height: 28px;
+    border-radius: Theme.rs;
+    background: ta.has-hover ? Theme.hover : transparent;
+
+    Text {
+        text: root.glyph;
+        font-size: root.fs;
+        color: root.tint;
+    }
+    ta := TouchArea {
+        mouse-cursor: MouseCursor.pointer;
+        clicked => { root.picked(); }
+    }
+}
+
+component TextBtn inherits Rectangle {
+    in property <string> label;
+    in property <color> tint: Theme.fg2;
+    callback picked();
+
+    height: 28px;
+    width: t.preferred-width + 20px;
+    border-radius: Theme.rs;
+    background: ta.has-hover ? Theme.hover : transparent;
+
+    t := Text {
+        text: root.label;
+        font-size: 12px;
+        color: root.tint;
+    }
+    ta := TouchArea {
+        mouse-cursor: MouseCursor.pointer;
+        clicked => { root.picked(); }
+    }
+}
+
+component Search inherits Rectangle {
+    in-out property <string> text;
+    callback edited(string);
+
+    height: 34px;
+    border-radius: Theme.rs;
+    background: Theme.panel;
+    border-width: 1px;
+    border-color: ti.has-focus ? Theme.accent : Theme.line;
+
+    TouchArea {
+        mouse-cursor: MouseCursor.text;
+        clicked => { ti.focus(); }
+    }
+    ti := TextInput {
+        x: 12px;
+        width: parent.width - 24px;
+        height: parent.height;
+        text <=> root.text;
+        font-size: 13px;
+        color: Theme.fg;
+        single-line: true;
+        vertical-alignment: center;
+        edited => { root.edited(self.text); }
+    }
+    Text {
+        x: 12px;
+        height: parent.height;
+        text: "搜索标题 / 内容 / 来源";
+        font-size: 13px;
+        color: Theme.fg3;
+        vertical-alignment: center;
+        visible: root.text == "";
+    }
+}
+
+component Item inherits Rectangle {
+    in property <Row> r;
+    callback open();
+    callback del();
+
+    height: 78px;
+    background: ta.has-hover ? Theme.hover : transparent;
+    animate background { duration: 100ms; }
+
+    ta := TouchArea {
+        mouse-cursor: MouseCursor.pointer;
+        clicked => { root.open(); }
+    }
+
+    // 未读标记
+    Rectangle {
+        x: 8px;
+        y: (parent.height - 6px) / 2;
+        width: 6px;
+        height: 6px;
+        border-radius: 3px;
+        background: Theme.prios[root.r.prio];
+        visible: !root.r.read;
+    }
+
+    Rectangle {
+        x: 20px;
+        y: 12px;
+        width: 34px;
+        height: 34px;
+        border-radius: Theme.rs;
+        background: Theme.cats[root.r.cat].with-alpha(0.16);
+        Text {
+            text: root.r.mark;
+            font-size: 14px;
+            font-weight: 700;
+            color: Theme.cats[root.r.cat];
+        }
+    }
+
+    Text {
+        x: 64px;
+        y: 11px;
+        width: parent.width - 64px - 96px;
+        height: 18px;
+        text: root.r.title;
+        font-size: 13px;
+        font-weight: root.r.read ? 400 : 700;
+        color: Theme.fg;
+        overflow: elide;
+        vertical-alignment: center;
+        horizontal-alignment: left;
+    }
+
+    Text {
+        x: 64px;
+        y: 31px;
+        width: parent.width - 64px - 40px;
+        height: 32px;
+        text: root.r.body;
+        font-size: 12px;
+        color: Theme.fg2;
+        wrap: word-wrap;
+        overflow: elide;
+        horizontal-alignment: left;
+    }
+
+    Text {
+        x: parent.width - 88px;
+        y: 11px;
+        width: 56px;
+        height: 18px;
+        text: root.r.time;
+        font-size: 11px;
+        color: Theme.fg3;
+        overflow: elide;
+        vertical-alignment: center;
+        horizontal-alignment: right;
+    }
+
+    IconBtn {
+        x: parent.width - 32px;
+        y: 10px;
+        glyph: "×";
+        fs: 16px;
+        opacity: ta.has-hover || self.hover ? 1.0 : 0.0;
+        animate opacity { duration: 120ms; }
+        picked => { root.del(); }
+    }
+
+    Rectangle {
+        x: 20px;
+        y: parent.height - 1px;
+        width: parent.width - 40px;
+        height: 1px;
+        background: Theme.line;
+    }
+}
+
+export component CenterWindow inherits Window {
+    in property <[Row]> rows;
+    in property <int> total;
+    in property <int> unread;
+    in property <bool> paused;
+    in-out property <int> filter: 0;
+    in property <length> cw: 420px;
+    in property <length> ch: 660px;
+    in property <length> pad: 14px;
+
+    callback search(string);
+    callback pick(int);
+    callback open(string);
+    callback del(string);
+    callback readall();
+    callback clearall();
+    callback hide-win();
+    callback min-win();
+    callback toggle-pause();
+    callback toggle-dark();
+    callback drag(float, float);
+
+    title: "通知中心";
+    no-frame: true;
+    background: transparent;
+    default-font-family: "Microsoft YaHei UI";
+    width: root.cw + 2 * root.pad;
+    height: root.ch + 2 * root.pad;
+
+    Rectangle {
+        x: root.pad;
+        y: root.pad;
+        width: root.cw;
+        height: root.ch;
+        background: Theme.bg;
+        border-radius: Theme.rl;
+        border-width: 1px;
+        border-color: Theme.line;
+        drop-shadow-blur: 28px;
+        drop-shadow-offset-y: 10px;
+        drop-shadow-color: Theme.shade;
+        clip: true;
+
+        VerticalLayout {
+            // ── 标题栏（可拖动）
+            Rectangle {
+                height: 52px;
+                TouchArea {
+                    moved => {
+                        root.drag((self.mouse-x - self.pressed-x) / 1px,
+                                  (self.mouse-y - self.pressed-y) / 1px);
+                    }
+                }
+                Text {
+                    x: 18px;
+                    height: parent.height;
+                    text: "通知中心";
+                    font-size: 15px;
+                    font-weight: 700;
+                    color: Theme.fg;
+                    vertical-alignment: center;
+                }
+                Rectangle {
+                    x: 90px;
+                    y: (parent.height - 18px) / 2;
+                    width: bt.preferred-width + 14px;
+                    height: 18px;
+                    border-radius: 9px;
+                    background: Theme.accent;
+                    visible: root.unread > 0;
+                    bt := Text {
+                        text: root.unread;
+                        font-size: 11px;
+                        font-weight: 700;
+                        color: #ffffff;
+                    }
+                }
+                HorizontalLayout {
+                    width: parent.width;
+                    height: parent.height;
+                    padding-right: 12px;
+                    spacing: 2px;
+                    alignment: end;
+                    IconBtn {
+                        glyph: root.paused ? "◐" : "◑";
+                        tint: root.paused ? Theme.prios[2] : Theme.fg2;
+                        picked => { root.toggle-pause(); }
+                    }
+                    IconBtn {
+                        glyph: "◉";
+                        picked => { root.toggle-dark(); }
+                    }
+                    IconBtn {
+                        glyph: "—";
+                        picked => { root.min-win(); }
+                    }
+                    IconBtn {
+                        glyph: "×";
+                        fs: 17px;
+                        picked => { root.hide-win(); }
+                    }
+                }
+            }
+
+            // ── 搜索
+            Rectangle {
+                height: 44px;
+                Search {
+                    x: 16px;
+                    y: 5px;
+                    width: parent.width - 32px;
+                    edited(t) => { root.search(t); }
+                }
+            }
+
+            // ── 过滤
+            Rectangle {
+                height: 42px;
+                HorizontalLayout {
+                    x: 16px;
+                    y: 8px;
+                    height: 26px;
+                    spacing: 6px;
+                    alignment: start;
+                    Chip { label: "全部"; on: root.filter == 0; picked => { root.pick(0); } }
+                    Chip { label: "未读"; on: root.filter == 1; picked => { root.pick(1); } }
+                    Chip { label: "消息"; on: root.filter == 2; picked => { root.pick(2); } }
+                    Chip { label: "提醒"; on: root.filter == 3; picked => { root.pick(3); } }
+                    Chip { label: "系统"; on: root.filter == 4; picked => { root.pick(4); } }
+                    Chip { label: "告警"; on: root.filter == 5; picked => { root.pick(5); } }
+                }
+            }
+
+            // ── 列表
+            Rectangle {
+                ListView {
+                    for it in root.rows: Rectangle {
+                        height: it.head ? 34px : 78px;
+
+                        if it.head: Text {
+                            x: 20px;
+                            height: parent.height;
+                            text: it.title;
+                            font-size: 11px;
+                            font-weight: 700;
+                            color: Theme.fg3;
+                            vertical-alignment: center;
+                        }
+                        if !it.head: Item {
+                            width: parent.width;
+                            r: it;
+                            open => { root.open(it.id); }
+                            del => { root.del(it.id); }
+                        }
+                    }
+                }
+                // 空态
+                VerticalLayout {
+                    alignment: center;
+                    visible: root.rows.length == 0;
+                    Text {
+                        text: "◇";
+                        font-size: 34px;
+                        color: Theme.fg3;
+                        horizontal-alignment: center;
+                    }
+                    Text {
+                        text: root.total == 0 ? "还没有通知" : "没有匹配的通知";
+                        font-size: 13px;
+                        color: Theme.fg3;
+                        horizontal-alignment: center;
+                    }
+                }
+            }
+
+            // ── 底栏
+            Rectangle {
+                height: 46px;
+                Rectangle {
+                    y: 0;
+                    height: 1px;
+                    background: Theme.line;
+                }
+                Text {
+                    x: 18px;
+                    height: parent.height;
+                    text: "共 " + root.total + " 条 · 未读 " + root.unread;
+                    font-size: 12px;
+                    color: Theme.fg3;
+                    vertical-alignment: center;
+                }
+                HorizontalLayout {
+                    width: parent.width;
+                    height: parent.height;
+                    padding-right: 12px;
+                    spacing: 4px;
+                    alignment: end;
+                    TextBtn {
+                        label: "全部已读";
+                        picked => { root.readall(); }
+                    }
+                    TextBtn {
+                        label: "清空";
+                        tint: Theme.prios[3];
+                        picked => { root.clearall(); }
+                    }
+                }
+            }
+        }
+    }
+}

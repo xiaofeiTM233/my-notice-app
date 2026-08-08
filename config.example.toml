@@ -1,0 +1,81 @@
+# NotifyHub 配置文件示例
+# 复制为 config.toml 后修改。默认读取路径：
+#   %APPDATA%\NotifyHub\config.toml （可用环境变量 NOTIFYHUB_DIR 覆盖）
+# 字段缺失时自动使用默认值；未知字段会被拒绝解析。
+
+# 通知后端接入
+[feed]
+# 接入模式：ws = WebSocket；poll = HTTP 长轮询；off = 不接入
+mode = "ws"
+# mode = "ws" 时使用的地址，支持 ws:// 与 wss://
+url = "ws://127.0.0.1:8787/ws"
+# mode = "poll" 时使用的地址，客户端会追加 ?since=<unix秒> 做增量拉取
+poll_url = "http://127.0.0.1:8787/notifications"
+# 长轮询轮询间隔（毫秒）
+poll_ms = 3000
+# 单次长轮询请求的最长等待（毫秒），应大于服务端 hold 时间
+poll_timeout_ms = 35000
+# 断开后首次重连等待（毫秒）
+retry_ms = 2000
+# 重连等待上限（毫秒），按指数退避逼近
+retry_max_ms = 30000
+# 非空时以 Authorization: Bearer <token> 发送
+token = ""
+
+# 桌面弹窗（toast）行为
+[toast]
+# 是否启用弹窗
+enabled = true
+# 自动消失时长（毫秒）
+duration_ms = 6000
+# 同时最多显示的弹窗数
+max_visible = 3
+# 弹窗尺寸（逻辑像素）
+width = 360.0
+height = 104.0
+# 弹窗之间的间距（逻辑像素）
+gap = 10.0
+# 弹窗距屏幕边缘的距离（逻辑像素）
+margin = 16.0
+# 弹窗出现的屏幕角落：bottom-right / top-right / bottom-left / top-left
+corner = "bottom-right"
+# 滑入动画时长（毫秒）
+anim_ms = 240
+# 鼠标悬停时是否暂停自动消失
+hold_on_hover = true
+
+# 弹窗过滤规则（仅影响是否弹窗，历史记录一律保留）
+[filter]
+# 允许弹出的分类，空 = 不限制；可选：message / reminder / system / alert
+cats = []
+# 低于该优先级的通知不弹窗：low / normal / high / urgent
+min_prio = "low"
+# 标题或正文包含这些词时不弹窗
+mute_words = []
+# 来源命中这些词（大小写不敏感、等长匹配）时不弹窗
+mute_srcs = []
+# 免打扰时段
+[filter.quiet]
+enabled = false
+# 起止时间，支持跨零点，如 22:00 → 08:00
+from = "22:00"
+to = "08:00"
+# 免打扰时段内仍允许弹出的最低优先级
+pass_prio = "urgent"
+
+# 通知中心窗口与外观
+[ui]
+# 深色主题
+dark = false
+# 通知中心窗口尺寸（逻辑像素）
+width = 420.0
+height = 660.0
+# 启动时是否最小化到托盘（不显示窗口）
+start_hidden = true
+
+# 历史记录存储
+[store]
+# 内存中保留的最大条数
+max = 500
+# 是否将历史落盘为 JSON（位于配置目录 history.json）
+persist = true

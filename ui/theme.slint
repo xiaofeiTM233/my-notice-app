@@ -1,0 +1,28 @@
+// 设计令牌：所有颜色/圆角集中在此，深浅色由 dark 驱动
+export global Theme {
+    in property <bool> dark: false;
+
+    out property <color> bg: dark ? #1b1e24f2 : #fffffff7;
+    out property <color> panel: dark ? #23262d : #f4f6f9;
+    out property <color> hover: dark ? #2b2f38 : #edf0f5;
+    out property <color> line: dark ? #343842 : #e6e9ef;
+    out property <color> fg: dark ? #eef1f6 : #1a1d23;
+    out property <color> fg2: dark ? #a3abb8 : #667085;
+    out property <color> fg3: dark ? #737b88 : #98a2b3;
+    out property <color> accent: dark ? #6c9bff : #2f6feb;
+    out property <color> shade: dark ? #00000099 : #0f172a2e;
+
+    // 索引与 model::Cat 一致：0 消息 / 1 提醒 / 2 系统 / 3 告警
+    out property <[color]> cats: dark
+        ? [#6c9bff, #f0b34a, #8d95a3, #f2726f]
+        : [#2f6feb, #e08a12, #6b7280, #e04a47];
+
+    // 索引与 model::Prio 一致：0 低 / 1 普通 / 2 高 / 3 紧急
+    out property <[color]> prios: dark
+        ? [#737b88, #6c9bff, #f0b34a, #f2726f]
+        : [#98a2b3, #2f6feb, #e08a12, #e04a47];
+
+    out property <length> rl: 14px;
+    out property <length> rm: 10px;
+    out property <length> rs: 8px;
+}
