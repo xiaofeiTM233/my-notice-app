@@ -1,0 +1,16 @@
+{
+  "wsUrl": "ws://localhost:8080/notifications",
+  "reconnectInterval": 5,
+  "maxReconnectAttempts": 10,
+  "popupDuration": 5000,
+  "popupMaxCount": 3,
+  "popupSpacing": 8,
+  "popupSound": false,
+  "maxHistory": 500,
+  "groupByDate": true,
+  "categoryFilter": [],
+  "priorityFilter": [],
+  "startMinimized": false,
+  "closeToTray": true,
+  "autoStart": false
+}

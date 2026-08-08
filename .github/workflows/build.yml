@@ -1,0 +1,41 @@
+name: Build NotificationManager
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+        with:
+          msbuild-architecture: x64
+
+      - name: Restore NuGet packages
+        run: nuget restore NotificationManager.sln
+
+      - name: Build (Release x64)
+        run: >
+          msbuild NotificationManager.sln
+          /p:Configuration=Release
+          /p:Platform=x64
+          /t:Build
+          /v:minimal
+          /m
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: NotificationManager-x64-Release
+          path: |
+            x64/Release/NotificationManager.exe
+            config.json
