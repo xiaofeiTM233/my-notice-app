@@ -1,0 +1,37 @@
+{
+  "backend": {
+    "mode": "websocket",
+    "wsUrl": "ws://localhost:8080/ws/notifications",
+    "httpUrl": "http://localhost:8080/api/notifications/poll",
+    "pollIntervalMs": 5000,
+    "authToken": "",
+    "autoReconnect": true,
+    "reconnectDelayMs": 3000
+  },
+  "popup": {
+    "displayDurationMs": 5000,
+    "maxVisible": 3,
+    "animationDurationMs": 300,
+    "width": 360,
+    "marginRight": 20,
+    "marginBottom": 20,
+    "spacing": 12,
+    "showCloseButton": true,
+    "playSound": false
+  },
+  "filters": [
+    {
+      "category": "",
+      "priority": "low",
+      "keyword": "",
+      "block": false,
+      "mute": true
+    }
+  ],
+  "startMinimized": false,
+  "minimizeToTray": true,
+  "closeToTray": true,
+  "theme": "dark",
+  "language": "zh-CN",
+  "maxHistory": 500
+}

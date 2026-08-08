@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="XAML 文件">
+      <UniqueIdentifier>{d1e3a3e0-f5a9-4f3b-8b9e-1f2a3b4c5d6e}</UniqueIdentifier>
+      <Extensions>xaml</Extensions>
+    </Filter>
+    <Filter Include="源文件\models">
+      <UniqueIdentifier>{a1b2c3d4-e5f6-7890-abcd-ef1234567891}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\models">
+      <UniqueIdentifier>{a1b2c3d4-e5f6-7890-abcd-ef1234567892}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\services">
+      <UniqueIdentifier>{a1b2c3d4-e5f6-7890-abcd-ef1234567893}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\services">
+      <UniqueIdentifier>{a1b2c3d4-e5f6-7890-abcd-ef1234567894}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\ui">
+      <UniqueIdentifier>{a1b2c3d4-e5f6-7890-abcd-ef1234567895}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\ui">
+      <UniqueIdentifier>{a1b2c3d4-e5f6-7890-abcd-ef1234567896}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="XAML 文件\ui">
+      <UniqueIdentifier>{a1b2c3d4-e5f6-7890-abcd-ef1234567897}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{a1b2c3d4-e5f6-7890-abcd-ef1234567898}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\App.xaml.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MainWindow.xaml.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\models\Notification.cpp">
+      <Filter>源文件\models</Filter>
+    </ClCompile>
+    <ClCompile Include="src\services\ConfigManager.cpp">
+      <Filter>源文件\services</Filter>
+    </ClCompile>
+    <ClCompile Include="src\services\BackendClient.cpp">
+      <Filter>源文件\services</Filter>
+    </ClCompile>
+    <ClCompile Include="src\services\NotificationService.cpp">
+      <Filter>源文件\services</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\NotificationPopup.xaml.cpp">
+      <Filter>源文件\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\NotificationCenter.xaml.cpp">
+      <Filter>源文件\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\PopupManager.cpp">
+      <Filter>源文件\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\TrayIcon.cpp">
+      <Filter>源文件\ui</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\pch.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\App.xaml.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MainWindow.xaml.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\models\Notification.h">
+      <Filter>头文件\models</Filter>
+    </ClInclude>
+    <ClInclude Include="src\models\AppConfig.h">
+      <Filter>头文件\models</Filter>
+    </ClInclude>
+    <ClInclude Include="src\services\ConfigManager.h">
+      <Filter>头文件\services</Filter>
+    </ClInclude>
+    <ClInclude Include="src\services\BackendClient.h">
+      <Filter>头文件\services</Filter>
+    </ClInclude>
+    <ClInclude Include="src\services\NotificationService.h">
+      <Filter>头文件\services</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\NotificationPopup.xaml.h">
+      <Filter>头文件\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\NotificationCenter.xaml.h">
+      <Filter>头文件\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\PopupManager.h">
+      <Filter>头文件\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\TrayIcon.h">
+      <Filter>头文件\ui</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="src\App.xaml">
+      <Filter>XAML 文件</Filter>
+    </ApplicationDefinition>
+    <Page Include="src\MainWindow.xaml">
+      <Filter>XAML 文件</Filter>
+    </Page>
+    <Page Include="src\ui\NotificationPopup.xaml">
+      <Filter>XAML 文件\ui</Filter>
+    </Page>
+    <Page Include="src\ui\NotificationCenter.xaml">
+      <Filter>XAML 文件\ui</Filter>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="config.json">
+      <Filter>资源文件</Filter>
+    </None>
+  </ItemGroup>
+</Project>

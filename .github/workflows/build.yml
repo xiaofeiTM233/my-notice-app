@@ -1,0 +1,62 @@
+name: Build WinNotify
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+env:
+  SOLUTION_FILE_PATH: .
+  BUILD_CONFIGURATION: Release
+  WINDOWS_APP_SDK_VERSION: 1.5.240404000
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v2
+
+    - name: Restore NuGet packages
+      run: nuget restore WinNotify.sln
+
+    - name: Install Windows App SDK
+      run: |
+        nuget install Microsoft.WindowsAppSDK -Version $env:WINDOWS_APP_SDK_VERSION -OutputDirectory packages
+        nuget install Microsoft.Windows.SDK.BuildTools -Version 10.0.22621.3233 -OutputDirectory packages
+
+    - name: Build x64 Release
+      run: |
+        msbuild.exe WinNotify.sln /p:Configuration=Release /p:Platform=x64 /m /nologo /v:minimal
+
+    - name: Build x64 Debug
+      run: |
+        msbuild.exe WinNotify.sln /p:Configuration=Debug /p:Platform=x64 /m /nologo /v:minimal
+
+    - name: Copy config to output
+      run: |
+        Copy-Item config.json -Destination bin\x64\Release\
+        Copy-Item config.json -Destination bin\x64\Debug\
+
+    - name: Upload Release artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: WinNotify-Release-x64
+        path: bin/x64/Release/
+        retention-days: 30
+
+    - name: Upload Debug artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: WinNotify-Debug-x64
+        path: bin/x64/Debug/
+        retention-days: 7

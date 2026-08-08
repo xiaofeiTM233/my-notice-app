@@ -1,0 +1,69 @@
+<Window
+    x:Class="WinNotify.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    xmlns:local="using:WinNotify">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- 自定义标题栏 -->
+        <Grid x:Name="AppTitleBar"
+              Height="48"
+              Background="#1A1A1A"
+              Padding="16,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                <FontIcon FontFamily="Segoe MDL2 Assets"
+                          Glyph="&#xE91C;"
+                          FontSize="18"
+                          Foreground="#409EFF"/>
+                <TextBlock Text="WinNotify"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           Foreground="#FFFFFF"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="2"
+                        Orientation="Horizontal"
+                        Spacing="4"
+                        VerticalAlignment="Center">
+                <Button x:Name="MinimizeBtn"
+                        Width="46"
+                        Height="32"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Click="MinimizeBtn_Click">
+                    <FontIcon FontFamily="Segoe MDL2 Assets"
+                              Glyph="&#xE921;"
+                              FontSize="10"
+                              Foreground="#888888"/>
+                </Button>
+                <Button x:Name="CloseBtn"
+                        Width="46"
+                        Height="32"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Click="CloseBtn_Click">
+                    <FontIcon FontFamily="Segoe MDL2 Assets"
+                              Glyph="&#xE8BB;"
+                              FontSize="10"
+                              Foreground="#888888"/>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- 通知中心 -->
+        <local:NotificationCenter x:Name="NotifyCenter" Grid.Row="1"/>
+    </Grid>
+</Window>

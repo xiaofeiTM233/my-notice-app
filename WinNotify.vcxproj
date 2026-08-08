@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <ProjectGuid>{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>WinNotify</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.22621.0</WindowsTargetPlatformVersion>
+    <WindowsAppSDKVersion>1.5.240404000</WindowsAppSDKVersion>
+    <UseWinUI>true</UseWinUI>
+    <EnableMsixTooling>true</EnableMsixTooling>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(SolutionDir)packages\Microsoft.WindowsAppSDK.$(WindowsAppSDKVersion)\build\native\Microsoft.WindowsAppSDK.props" Condition="Exists('$(SolutionDir)packages\Microsoft.WindowsAppSDK.$(WindowsAppSDKVersion)\build\native\Microsoft.WindowsAppSDK.props')" />
+    <Import Project="$(SolutionDir)packages\Microsoft.Windows.SDK.BuildTools.10.0.22621.3233\build\native\Microsoft.Windows.SDK.BuildTools.props" Condition="Exists('$(SolutionDir)packages\Microsoft.Windows.SDK.BuildTools.10.0.22621.3233\build\native\Microsoft.Windows.SDK.BuildTools.props')" />
+    <Import Project="$(UserProfile)\AppData\Local\Microsoft\WindowsApps\Microsoft.WindowsAppSDK.$(WindowsAppSDKVersion)\build\native\Microsoft.WindowsAppSDK.props" Condition="Exists('$(UserProfile)\AppData\Local\Microsoft\WindowsApps\Microsoft.WindowsAppSDK.$(WindowsAppSDKVersion)\build\native\Microsoft.WindowsAppSDK.props')" />
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)obj\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)obj\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\models;$(ProjectDir)src\services;$(ProjectDir)src\ui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>windowsapp.lib;ws2_32.lib;shcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)src\models;$(ProjectDir)src\services;$(ProjectDir)src\ui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>windowsapp.lib;ws2_32.lib;shcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+
+  <!-- 预编译头 -->
+  <ItemGroup>
+    <ClInclude Include="src\pch.h">
+      <PrecompiledHeader Condition="'$(CPlusPlusWinRTExtensions)' != 'true' and '$(LanguageStandard)' != 'stdcpp20'">Create</PrecompiledHeader>
+    </ClInclude>
+  </ItemGroup>
+
+  <!-- 主程序 -->
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\App.xaml.cpp">
+      <DependentUpon>App.xaml</DependentUpon>
+    </ClCompile>
+    <ClCompile Include="src\MainWindow.xaml.cpp">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\App.xaml.h">
+      <DependentUpon>App.xaml</DependentUpon>
+    </ClInclude>
+    <ClInclude Include="src\MainWindow.xaml.h">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="src\App.xaml">
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Page Include="src\MainWindow.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+
+  <!-- 模型层 -->
+  <ItemGroup>
+    <ClCompile Include="src\models\Notification.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\models\Notification.h" />
+    <ClInclude Include="src\models\AppConfig.h" />
+  </ItemGroup>
+
+  <!-- 服务层 -->
+  <ItemGroup>
+    <ClCompile Include="src\services\ConfigManager.cpp" />
+    <ClCompile Include="src\services\BackendClient.cpp" />
+    <ClCompile Include="src\services\NotificationService.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\services\ConfigManager.h" />
+    <ClInclude Include="src\services\BackendClient.h" />
+    <ClInclude Include="src\services\NotificationService.h" />
+  </ItemGroup>
+
+  <!-- UI 层 -->
+  <ItemGroup>
+    <ClCompile Include="src\ui\NotificationPopup.xaml.cpp">
+      <DependentUpon>NotificationPopup.xaml</DependentUpon>
+    </ClCompile>
+    <ClCompile Include="src\ui\NotificationCenter.xaml.cpp">
+      <DependentUpon>NotificationCenter.xaml</DependentUpon>
+    </ClCompile>
+    <ClCompile Include="src\ui\PopupManager.cpp" />
+    <ClCompile Include="src\ui\TrayIcon.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\ui\NotificationPopup.xaml.h">
+      <DependentUpon>NotificationPopup.xaml</DependentUpon>
+    </ClInclude>
+    <ClInclude Include="src\ui\NotificationCenter.xaml.h">
+      <DependentUpon>NotificationCenter.xaml</DependentUpon>
+    </ClInclude>
+    <ClInclude Include="src\ui\PopupManager.h" />
+    <ClInclude Include="src\ui\TrayIcon.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="src\ui\NotificationPopup.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="src\ui\NotificationCenter.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+
+  <!-- 资源 -->
+  <ItemGroup>
+    <None Include="config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(SolutionDir)packages\Microsoft.WindowsAppSDK.$(WindowsAppSDKVersion)\build\native\Microsoft.WindowsAppSDK.targets" Condition="Exists('$(SolutionDir)packages\Microsoft.WindowsAppSDK.$(WindowsAppSDKVersion)\build\native\Microsoft.WindowsAppSDK.targets')" />
+    <Import Project="$(SolutionDir)packages\Microsoft.Windows.SDK.BuildTools.10.0.22621.3233\build\native\Microsoft.Windows.SDK.BuildTools.targets" Condition="Exists('$(SolutionDir)packages\Microsoft.Windows.SDK.BuildTools.10.0.22621.3233\build\native\Microsoft.Windows.SDK.BuildTools.targets')" />
+    <Import Project="$(UserProfile)\AppData\Local\Microsoft\WindowsApps\Microsoft.WindowsAppSDK.$(WindowsAppSDKVersion)\build\native\Microsoft.WindowsAppSDK.targets" Condition="Exists('$(UserProfile)\AppData\Local\Microsoft\WindowsApps\Microsoft.WindowsAppSDK.$(WindowsAppSDKVersion)\build\native\Microsoft.WindowsAppSDK.targets')" />
+  </ImportGroup>
+</Project>
