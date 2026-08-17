@@ -1,31 +1,31 @@
 //! 主视图：标题栏 + 侧边栏（筛选）+ 通知列表 + 详情面板。
 //!
 //! 同时负责 SSE 事件轮询（每 120ms 从通道取一次）、通知卡片列表的数据同步、
-//! 新消息到达时的右上角弹窗（`WindowExt::push_notification`）。
+//! 新消息到达时推送到屏幕右下角的 toast 窗口，以及托盘事件处理。
 
 use std::rc::Rc;
 use std::sync::mpsc::Receiver;
 use std::time::Duration;
 
 use gpui::{
-    App, AppContext, ClickEvent, Context, Entity, Hsla, InteractiveElement, IntoElement,
-    MouseButton, ParentElement, Render, StatefulInteractiveElement, Styled, Subscription, Window,
-    div, prelude::FluentBuilder as _, px,
+    App, AppContext, ClickEvent, Context, Div, Entity, Hsla, InteractiveElement, IntoElement,
+    MouseButton, ParentElement, Render, Stateful, StatefulInteractiveElement, Styled, Subscription,
+    Window, div, prelude::FluentBuilder as _, px,
 };
 use gpui_component::{
     ActiveTheme as _, Icon, IconName, IndexPath, Sizable as _, StyledExt as _, TitleBar,
-    WindowExt as _,
     badge::Badge,
     button::{Button, ButtonVariants as _},
     h_flex,
     list::{List, ListEvent, ListState},
-    notification::Notification,
     v_flex,
 };
 use notice_model::{NoticeKind, NoticeMessage};
 use notice_sse::{SseClient, SseHandle};
 
+use crate::app::SystemEvent;
 use crate::state::{ConnectionState, ListFilter, NoticeStore, ServerConfig};
+use crate::toast::{ToastHub, ToastItem};
 use crate::ui::detail;
 use crate::ui::kind_icon;
 use crate::ui::notice_list::NoticeListDelegate;
@@ -40,13 +40,24 @@ pub struct NoticeRoot {
     /// SSE 事件接收端（GUI 线程轮询）。
     sse_rx: Receiver<notice_sse::SseEvent>,
     /// SSE 连接句柄（保持存活；窗口销毁后线程随通道关闭退出）。
-    sse_handle: Option<SseHandle>,
+    _sse_handle: Option<SseHandle>,
     /// 服务端地址。
     _server_url: String,
+    /// 系统托盘（仅 Windows）。
+    #[cfg(target_os = "windows")]
+    tray: Option<crate::tray::TrayController>,
+    /// 系统事件接收端（托盘 / toast 窗口 → 主窗口）。
+    system_rx: Receiver<SystemEvent>,
 }
 
 impl NoticeRoot {
-    pub fn new(server: ServerConfig, window: &mut Window, cx: &mut Context<Self>) -> Self {
+    pub fn new(
+        server: ServerConfig,
+        system_tx: std::sync::mpsc::Sender<SystemEvent>,
+        system_rx: Receiver<SystemEvent>,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) -> Self {
         let (sse_handle, sse_rx) = SseClient::new(server.url.clone())
             .with_backoff(Duration::from_secs(1), Duration::from_secs(30))
             .with_heartbeat_timeout(Duration::from_secs(45))
@@ -60,13 +71,19 @@ impl NoticeRoot {
             }),
         ];
 
-        let mut root = Self {
+        #[cfg(target_os = "windows")]
+        let tray = crate::tray::TrayController::install(window, system_tx).ok();
+
+        let root = Self {
             store: NoticeStore::default(),
             notice_list,
             _subscriptions: subscriptions,
             sse_rx,
-            sse_handle: Some(sse_handle),
+            _sse_handle: Some(sse_handle),
             _server_url: server.url,
+            #[cfg(target_os = "windows")]
+            tray,
+            system_rx,
         };
         root.spawn_poll_loop(window, cx);
         root
@@ -109,29 +126,49 @@ impl NoticeRoot {
             }
         }
 
+        // 处理系统事件（托盘 / toast 窗口）
+        while let Ok(event) = self.system_rx.try_recv() {
+            match event {
+                SystemEvent::ShowMainWindow => self.show_main_window(window, cx),
+                SystemEvent::Quit => cx.quit(),
+                SystemEvent::MarkRead(id) => {
+                    if self.store.mark_read(&id, now) {
+                        self.sync_list(&mut *cx);
+                        cx.notify();
+                    }
+                    // 同时移除 toast 窗口里对应的卡片
+                    if let Some(hub) = cx.try_global::<ToastHub>() {
+                        let toast_window = hub.0.clone();
+                        toast_window.update(cx, |tw, cx| tw.remove(&id, cx));
+                    }
+                }
+            }
+        }
+
         if changed {
             self.sync_list(&mut *cx);
             cx.notify();
-            for notice in new_notices {
-                self.toast_for(window, &notice, cx);
+            // 推送到屏幕右下角 toast 窗口
+            if let Some(hub) = cx.try_global::<ToastHub>() {
+                let toast_window = hub.0.clone();
+                for notice in &new_notices {
+                    let item = ToastItem::from_notice(notice, now);
+                    toast_window.update(cx, |tw, cx| tw.push(item, cx));
+                }
             }
         }
     }
 
-    /// 新消息到达时在窗口右上角弹出提示。
-    fn toast_for(&self, window: &mut Window, message: &NoticeMessage, cx: &mut Context<Self>) {
-        let summary = message
-            .summary_or_body()
-            .map(|s| s.chars().take(80).collect::<String>())
-            .unwrap_or_default();
-        let note = if message.meta.priority.is_prominent() {
-            Notification::warning(summary)
-        } else {
-            Notification::info(summary)
+    /// 显示 / 激活主窗口（托盘或 toast 卡片触发）。
+    fn show_main_window(&self, window: &mut Window, cx: &mut Context<Self>) {
+        #[cfg(target_os = "windows")]
+        if let Some(tray) = &self.tray {
+            // 主窗口可能已被隐藏到托盘，用 Win32 恢复并置前
+            tray.show();
+            return;
         }
-        .title(message.content.title.clone())
-        .autohide(true);
-        window.push_notification(note, &mut *cx);
+        window.activate_window();
+        let _ = cx;
     }
 
     // ------------------------------------------------------------------
@@ -235,9 +272,9 @@ impl NoticeRoot {
                             .gap_1()
                             .px_1()
                             .py_0p5()
-                            .rounded_full()
+                            .rounded(px(10.))
                             .bg(status_color.opacity(0.14))
-                            .child(div().size(px(6.)).rounded_full().bg(status_color))
+                            .child(div().size(px(6.)).rounded(px(3.)).bg(status_color))
                             .child(div().text_xs().text_color(status_color).child(status_text)),
                     ),
             )
@@ -293,22 +330,13 @@ impl NoticeRoot {
         let total = self.store.kind_counts.values().sum::<usize>();
         let read = total.saturating_sub(unread);
 
-        let kinds = [
-            NoticeKind::System,
-            NoticeKind::Interaction,
-            NoticeKind::Transaction,
-            NoticeKind::Security,
-            NoticeKind::Activity,
-            NoticeKind::Other,
-        ];
-
         v_flex()
             .w(px(200.))
             .h_full()
             .flex_shrink_0()
             .border_r_1()
             .border_color(cx.theme().border)
-            .bg(cx.theme().tokens.popover)
+            .bg(cx.theme().popover)
             .p_2()
             .gap_1()
             .child(
@@ -370,34 +398,51 @@ impl NoticeRoot {
                     .text_color(cx.theme().muted_foreground)
                     .child("类型"),
             )
-            .children(kinds.into_iter().map(|kind| {
-                let count = self.store.kind_counts.get(&kind).copied().unwrap_or(0);
-                let label = kind.display_name();
-                let active = filter == ListFilter::Kind(kind);
-                let id: &'static str = match kind {
-                    NoticeKind::System => "filter-kind-system",
-                    NoticeKind::Interaction => "filter-kind-interaction",
-                    NoticeKind::Transaction => "filter-kind-transaction",
-                    NoticeKind::Security => "filter-kind-security",
-                    NoticeKind::Activity => "filter-kind-activity",
-                    NoticeKind::Other | NoticeKind::Unknown => "filter-kind-other",
-                };
-                self.filter_row(
-                    cx,
-                    id,
-                    kind_icon(kind),
-                    label,
-                    count,
-                    active,
-                    move |this, _, _, cx| {
-                        this.store.filter = ListFilter::Kind(kind);
-                        this.sync_list(cx);
-                        cx.refresh_windows();
-                    },
-                )
-            }))
+            .children(self.kind_filter_rows(cx))
             .child(div().flex_1())
             .child(self.render_connection_box(cx))
+    }
+
+    /// 各类型筛选行（用 for 循环构造，避免 map 闭包捕获生命周期问题）。
+    fn kind_filter_rows(&mut self, cx: &mut Context<Self>) -> Vec<Stateful<Div>> {
+        let filter = self.store.filter;
+        let kinds = [
+            NoticeKind::System,
+            NoticeKind::Interaction,
+            NoticeKind::Transaction,
+            NoticeKind::Security,
+            NoticeKind::Activity,
+            NoticeKind::Other,
+        ];
+
+        let mut rows = Vec::new();
+        for kind in kinds {
+            let count = self.store.kind_counts.get(&kind).copied().unwrap_or(0);
+            let label = kind.display_name();
+            let active = filter == ListFilter::Kind(kind);
+            let id: &'static str = match kind {
+                NoticeKind::System => "filter-kind-system",
+                NoticeKind::Interaction => "filter-kind-interaction",
+                NoticeKind::Transaction => "filter-kind-transaction",
+                NoticeKind::Security => "filter-kind-security",
+                NoticeKind::Activity => "filter-kind-activity",
+                NoticeKind::Other | NoticeKind::Unknown => "filter-kind-other",
+            };
+            rows.push(self.filter_row(
+                cx,
+                id,
+                kind_icon(kind),
+                label,
+                count,
+                active,
+                move |this, _, _, cx| {
+                    this.store.filter = ListFilter::Kind(kind);
+                    this.sync_list(cx);
+                    cx.refresh_windows();
+                },
+            ));
+        }
+        rows
     }
 
     /// 单行筛选按钮。
@@ -411,7 +456,7 @@ impl NoticeRoot {
         count: usize,
         active: bool,
         on_click: impl Fn(&mut NoticeRoot, &ClickEvent, &mut Window, &mut App) + 'static,
-    ) -> impl IntoElement {
+    ) -> Stateful<Div> {
         let foreground = if active {
             cx.theme().accent_foreground
         } else {
@@ -430,7 +475,7 @@ impl NoticeRoot {
         let hover_background = if active {
             cx.theme().accent
         } else {
-            cx.theme().tokens.list_hover
+            cx.theme().list_hover
         };
 
         h_flex()
@@ -442,21 +487,18 @@ impl NoticeRoot {
             .rounded(cx.theme().radius)
             .items_center()
             .bg(background)
-            .hover(move |mut style| {
-                style.bg(hover_background);
-                style
-            })
+            .hover(move |style| style.bg(hover_background))
             .on_click(cx.listener(move |this, ev, window, cx| on_click(this, ev, window, cx)))
             .child(Icon::new(icon).small().text_color(muted))
             .child(div().flex_1().text_sm().text_color(foreground).child(label))
             .child(
                 div()
                     .px_1()
-                    .rounded_full()
+                    .rounded(px(9.))
                     .bg(if active {
                         cx.theme().accent_foreground.opacity(0.15)
                     } else {
-                        cx.theme().tokens.list_hover
+                        cx.theme().list_hover
                     })
                     .text_xs()
                     .text_color(muted)
@@ -472,13 +514,13 @@ impl NoticeRoot {
             .gap_1()
             .p_1()
             .rounded(cx.theme().radius)
-            .bg(cx.theme().tokens.list_hover)
+            .bg(cx.theme().list_hover)
             .child(
                 h_flex()
                     .items_center()
                     .gap_1()
                     .px_1()
-                    .child(div().size(px(6.)).rounded_full().bg(status_color))
+                    .child(div().size(px(6.)).rounded(px(3.)).bg(status_color))
                     .child(
                         div()
                             .text_xs()
@@ -535,7 +577,11 @@ impl NoticeRoot {
             .child(List::new(&self.notice_list).flex_1().w_full().px_1().py_1())
     }
 
-    fn render_detail_pane(&mut self, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render_detail_pane(
+        &mut self,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) -> impl IntoElement {
         let message = self.store.selected();
 
         v_flex()
@@ -547,7 +593,7 @@ impl NoticeRoot {
                 v_flex()
                     .size_full()
                     .gap_1()
-                    .child(detail::detail_content(&message, cx))
+                    .child(detail::detail_content(&message, window, &mut *cx))
                     .child(
                         h_flex().justify_end().child(
                             Button::new("clear-selection")
@@ -580,7 +626,7 @@ impl Render for NoticeRoot {
                     .min_h_0()
                     .child(self.render_sidebar(cx))
                     .child(self.render_list_pane(cx))
-                    .child(self.render_detail_pane(cx)),
+                    .child(self.render_detail_pane(window, cx)),
             )
     }
 }

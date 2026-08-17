@@ -4,7 +4,7 @@ pub mod detail;
 pub mod notice_list;
 pub mod root;
 
-use chrono::{DateTime, Local};
+use chrono::{Local, TimeZone};
 use gpui::{App, Hsla};
 use gpui_component::{ActiveTheme as _, IconName};
 use notice_model::{NoticeKind, NoticePriority};
@@ -43,17 +43,9 @@ pub fn priority_color(cx: &App, priority: NoticePriority) -> Hsla {
     }
 }
 
-/// Unix 秒 → 本地时间格式串 `MM-dd HH:mm`。
-pub fn format_time(unix_seconds: i64) -> String {
-    let Some(dt) = DateTime::<Local>::from_timestamp(unix_seconds, 0) else {
-        return String::new();
-    };
-    dt.format("%m-%d %H:%M").to_string()
-}
-
 /// Unix 秒 → 完整时间格式串 `yyyy-MM-dd HH:mm:ss`。
 pub fn format_full_time(unix_seconds: i64) -> String {
-    let Some(dt) = DateTime::<Local>::from_timestamp(unix_seconds, 0) else {
+    let Some(dt) = Local.timestamp_opt(unix_seconds, 0).single() else {
         return String::new();
     };
     dt.format("%Y-%m-%d %H:%M:%S").to_string()
@@ -61,7 +53,7 @@ pub fn format_full_time(unix_seconds: i64) -> String {
 
 /// 相对时间（用于列表项）。
 pub fn relative_time(unix_seconds: i64) -> String {
-    let Some(dt) = DateTime::<Local>::from_timestamp(unix_seconds, 0) else {
+    let Some(dt) = Local.timestamp_opt(unix_seconds, 0).single() else {
         return String::new();
     };
     let now = Local::now();

@@ -26,6 +26,10 @@ import json
 import sys
 import threading
 import time
+
+def log(message: str) -> None:
+    """带刷新的日志输出（重定向到文件时也能实时看到）。"""
+    print(message, flush=True)
 from collections import deque
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -272,7 +276,7 @@ class SseHandler(BaseHTTPRequestHandler):
             self._write(build_sse_message(message))
         server.last_send_at = time.monotonic()
 
-        print(f"[sse] 客户端接入: {self.client_address[0]} (replay={len(replay)}, burst={server.burst})")
+        log(f"[sse] 客户端接入: {self.client_address[0]} (replay={len(replay)}, burst={server.burst})")
 
         try:
             next_heartbeat = time.monotonic() + server.heartbeat
@@ -286,10 +290,10 @@ class SseHandler(BaseHTTPRequestHandler):
                     server.remember(message)
                     self._write(build_sse_message(message))
                     server.last_send_at = now
-                    print(f"[sse] 推送: {message['id']} {message['meta']['type']} {message['content']['title']}")
+                    log(f"[sse] 推送: {message['id']} {message['meta']['type']} {message['content']['title']}")
                 time.sleep(0.2)
         except (BrokenPipeError, ConnectionResetError, OSError):
-            print(f"[sse] 客户端断开: {self.client_address[0]}")
+            log(f"[sse] 客户端断开: {self.client_address[0]}")
         except KeyboardInterrupt:
             pass
 
@@ -304,7 +308,7 @@ class SseHandler(BaseHTTPRequestHandler):
         path = self.path.split("?", 1)[0]
         if path.startswith("/read/"):
             message_id = path.removeprefix("/read/")
-            print(f"[api] 标记已读: {message_id}")
+            log(f"[api] 标记已读: {message_id}")
             self._json({"ok": True, "id": message_id})
         elif path == "/clear":
             self._json({"ok": True})

@@ -238,7 +238,8 @@ impl NoticeStore {
         }
     }
 
-    /// 清除全部消息。
+    /// 清除全部消息（保留作公共 API，当前 UI 未接入）。
+    #[allow(dead_code)]
     pub fn clear_all(&mut self) -> bool {
         if self.items.is_empty() {
             return false;

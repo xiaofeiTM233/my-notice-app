@@ -2,6 +2,9 @@
 
 mod app;
 mod state;
+mod toast;
+#[cfg(target_os = "windows")]
+mod tray;
 mod ui;
 
 use app::launch;

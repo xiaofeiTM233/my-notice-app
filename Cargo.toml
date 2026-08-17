@@ -13,22 +13,17 @@ license = "MIT"
 rust-version = "1.85"
 
 # ---------------------------------------------------------------------------
-# 依赖锁定说明：
+# 依赖说明：全部来自 crates.io，无 git 依赖。
 #
-# 1. gpui / gpui_platform 仅以 git 形式发布（平台后端 gpui_windows / gpui_macos /
-#    gpui_linux / gpui_web 未发布到 crates.io），必须从 zed 仓库拉取。
-# 2. rev 取自 gpui-component 仓库 Cargo.lock 中实际验证过的提交
-#    （cc053a4a6fa2fd0e8793201ed9099466af1be0b1），保证 API 兼容。
-# 3. gpui-component / gpui-component-assets 使用 git 依赖并锁定到 gpui-component
-#    main 分支已验证的提交（81305ef4a0fd86f64777791dd38ead5c303a15f4）。
-#    若希望改为 crates.io 版本，可替换为 version = "0.5.1"，并同时把
-#    gpui/gpui_platform 的 git 依赖替换为 version = "0.2.2"（crates.io）。
+# - gpui 0.2.2 为 Zed GPUI 的官方 crates.io 发布版，内置 Windows / macOS /
+#   Linux 平台后端（无需 gpui_platform 与平台后端 git 依赖）。
+# - gpui-component 0.5.1 / gpui-component-assets 0.5.1 为对应 crates.io 发布版，
+#   其依赖即 crates.io 的 gpui 0.2.2，三者版本配套。
 # ---------------------------------------------------------------------------
 [workspace.dependencies]
-gpui = { version = "0.2.2", git = "https://github.com/zed-industries/zed", rev = "cc053a4a6fa2fd0e8793201ed9099466af1be0b1" }
-gpui_platform = { git = "https://github.com/zed-industries/zed", rev = "cc053a4a6fa2fd0e8793201ed9099466af1be0b1", features = ["font-kit", "x11", "wayland", "runtime_shaders"] }
-gpui-component = { git = "https://github.com/longbridge/gpui-component", rev = "81305ef4a0fd86f64777791dd38ead5c303a15f4" }
-gpui-component-assets = { git = "https://github.com/longbridge/gpui-component", rev = "81305ef4a0fd86f64777791dd38ead5c303a15f4" }
+gpui = "0.2.2"
+gpui-component = "0.5.1"
+gpui-component-assets = "0.5.1"
 
 anyhow = "1"
 serde = { version = "1", features = ["derive"] }

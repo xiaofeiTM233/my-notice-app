@@ -60,23 +60,19 @@ cargo run -p notice-app -- --server http://127.0.0.1:8866/events
 
 服务端地址也可以通过环境变量指定：`NOTICE_SSE_URL=http://127.0.0.1:8866/events cargo run -p notice-app`。
 
-## 依赖版本锁定说明
+## 依赖说明
 
-GPUI 生态的版本演进较快，为保证可复现构建，本项目做了严格锁定：
+全部依赖来自 **crates.io**（无 git 依赖），可离线复现构建：
 
-| 依赖 | 来源 | 锁定 |
+| 依赖 | 版本 | 说明 |
 |---|---|---|
-| `gpui` | `zed-industries/zed` (git) | `cc053a4a6fa2fd0e8793201ed9099466af1be0b1` |
-| `gpui_platform` | `zed-industries/zed` (git) | 同上（features: `font-kit, x11, wayland, runtime_shaders`） |
-| `gpui-component` | `longbridge/gpui-component` (git) | `81305ef4a0fd86f64777791dd38ead5c303a15f4` |
-| `gpui-component-assets` | `longbridge/gpui-component` (git) | 同上 |
+| `gpui` | 0.2.2 | Zed GPUI 官方发布版，内置 Windows / macOS / Linux 平台后端 |
+| `gpui-component` | 0.5.1 | 组件库 crates.io 发布版 |
+| `gpui-component-assets` | 0.5.1 | 图标资源 crates.io 发布版 |
 
-- `gpui` 的 git rev 取自 gpui-component 仓库 `Cargo.lock` 中实际验证过的提交，两者保证 API 兼容。
-- `gpui_platform` 及平台后端（`gpui_windows` 等）未发布到 crates.io，必须使用 git 依赖。
-- 如希望改用 crates.io 版本（`gpui-component = "0.5.1"` + `gpui = "0.2.2"`），可自行调整 `Cargo.toml`，但需自行验证兼容性。
-- 更新锁定版本时，请以 [gpui-component](https://github.com/longbridge/gpui-component) 的 `Cargo.lock` 为准同步 zed rev。
-
-> 首次编译需要拉取 zed 仓库并编译数百个依赖（含 wgpu 等），耗时较长，属正常现象；后续构建有缓存会快很多。
+- `gpui` 0.2.2 将平台后端（Windows / macOS / Linux）合并发布，因此不再需要 `gpui_platform` 及 zed 仓库 git 依赖。
+- 三个版本号是配套组合（gpui-component 0.5.1 的依赖即 crates.io 的 gpui 0.2.2），请勿单独升级其中某一个。
+- 首次编译需下载数百个依赖（含 wgpu 等），耗时较长，属正常现象；后续构建有缓存会快很多。
 
 ## SSE 协议约定（客户端 ↔ 服务端）
 
@@ -146,8 +142,8 @@ data: {"id":"...","meta":{...},"content":{...},"interaction":{...},"extra":{}}
 
 ## 验证说明
 
-- `notice-model` / `notice-sse` / `notice-app::state` 三个纯逻辑模块已通过单元测试（共 18 项，含 test.json 结构解析、SSE 行解析、去重排序、已读管理、过期过滤、指数退避等），见各 crate 内 `#[cfg(test)]`。
-- 桌面 UI（`notice-app` 的 `ui` 模块）的编译依赖 zed 仓库（git 依赖），需要能访问 github.com 的环境完成首次拉取与编译；所有 UI 代码使用的 API 均已对照锁定的 gpui / gpui-component 源码逐项核对（List/ListItem/ListDelegate、Badge、Button、TitleBar、Notification、动画、主题令牌等）。
+- 单元测试共 18 项全部通过：`notice-model`（test.json 结构解析、未知枚举兜底、过期判断等 5 项）、`notice-sse`（SSE 行解析、退避计算、缓冲读取等 5 项）、`notice-app::state`（去重排序、已读管理、过滤、过期隐藏等 8 项）。运行 `cargo test` 即可复现。
+- 已在本机（Windows）实测：`cargo build -p notice-app` 成功产出可执行文件，应用启动后窗口正常，并通过 SSE 长连接持续接收测试服务端推送。
 - 本地首次编译耗时较长（数百个依赖），属正常现象。
 
 ## 后续扩展方向（TODO）

@@ -3,11 +3,11 @@
 use std::rc::Rc;
 
 use gpui::{
-    Animation, AnimationExt, App, AppContext, Context, ElementId, IntoElement, ParentElement,
-    RenderOnce, Styled, Window, div, prelude::FluentBuilder as _, px,
+    Animation, AnimationExt, App, Context, ElementId, IntoElement, ParentElement, RenderOnce,
+    Styled, Window, div, prelude::FluentBuilder as _, px,
 };
 use gpui_component::{
-    ActiveTheme as _, Icon, IconName, IndexPath, Selectable, Sizable as _, StyledExt as _, h_flex,
+    ActiveTheme as _, Icon, IconName, IndexPath, Selectable, StyledExt as _, h_flex,
     list::{ListDelegate, ListItem, ListState},
     v_flex,
 };
@@ -69,6 +69,7 @@ impl ListDelegate for NoticeListDelegate {
 }
 
 /// 通知列表项：包裹 `ListItem`，展示类型图标、标题、摘要、时间与优先级。
+#[derive(IntoElement)]
 pub struct NoticeListItem {
     base: ListItem,
     message: Rc<NoticeMessage>,
@@ -128,108 +129,125 @@ impl RenderOnce for NoticeListItem {
 
         // 新消息滑入动画：row 号变化时元素重建，动画从头播放
         let animation = Animation::new(std::time::Duration::from_millis(320))
-            .with_easing(gpui_component::animation::ease_out_cubic);
+            .with_easing(gpui_component::animation::cubic_bezier(0.25, 0.1, 0.25, 1.));
 
         self.base
             .px_2()
             .py_2()
-            .gap_2()
             .h(px(76.))
-            .items_center()
             .child(
-                // 类型图标（带底色圆角块）
-                div()
-                    .size(px(34.))
-                    .flex_shrink_0()
-                    .rounded(cx.theme().radius)
+                // 唯一子元素：内部横向布局。
+                // 注意：ListItem 渲染时会把子元素包裹进一个 w_full 的普通容器，
+                // 直接平铺多个子元素会被垂直堆叠（图标跑到标题上方），
+                // 因此横向排列必须由这一个 h_flex 自己完成。
+                h_flex()
+                    .w_full()
                     .items_center()
-                    .justify_center()
-                    .bg(color.opacity(0.14))
-                    .child(Icon::new(kind_icon(kind)).small().text_color(color)),
-            )
-            .child(
-                v_flex()
-                    .flex_1()
-                    .overflow_hidden()
-                    .gap_1()
+                    .gap_2()
                     .child(
-                        h_flex()
+                        // 类型图标（带底色圆角块）；div 需显式 flex 才能居中子元素
+                        div()
+                            .flex()
+                            .size(px(34.))
+                            .flex_shrink_0()
+                            .rounded(cx.theme().radius)
                             .items_center()
+                            .justify_center()
+                            .bg(color.opacity(0.14))
+                            .child(Icon::new(kind_icon(kind)).size(px(20.)).text_color(color)),
+                    )
+                    .child(
+                        v_flex()
+                            .flex_1()
+                            .overflow_hidden()
                             .gap_1()
                             .child(
+                                h_flex()
+                                    .items_center()
+                                    .gap_1()
+                                    .child(
+                                        div()
+                                            .flex_1()
+                                            .overflow_hidden()
+                                            .whitespace_nowrap()
+                                            .text_ellipsis()
+                                            .text_sm()
+                                            .font_semibold()
+                                            .text_color(if unread {
+                                                cx.theme().foreground
+                                            } else {
+                                                cx.theme().foreground.opacity(0.75)
+                                            })
+                                            .child(title),
+                                    )
+                                    .child(
+                                        div()
+                                            .text_xs()
+                                            .flex_shrink_0()
+                                            .text_color(cx.theme().muted_foreground)
+                                            .child(time_text),
+                                    ),
+                            )
+                            .child(
                                 div()
-                                    .flex_1()
                                     .overflow_hidden()
                                     .whitespace_nowrap()
                                     .text_ellipsis()
-                                    .text_sm()
-                                    .font_semibold()
-                                    .text_color(if unread {
-                                        cx.theme().foreground
-                                    } else {
-                                        cx.theme().foreground.opacity(0.75)
-                                    })
-                                    .child(title),
-                            )
-                            .child(
-                                div()
-                                    .text_xs()
-                                    .flex_shrink_0()
-                                    .text_color(cx.theme().muted_foreground)
-                                    .child(time_text),
-                            ),
-                    )
-                    .child(
-                        div()
-                            .overflow_hidden()
-                            .whitespace_nowrap()
-                            .text_ellipsis()
-                            .text_xs()
-                            .text_color(cx.theme().muted_foreground)
-                            .child(summary),
-                    )
-                    .child(
-                        h_flex()
-                            .items_center()
-                            .gap_1()
-                            .child(div().text_xs().text_color(color).child(kind.display_name()))
-                            .child(
-                                div()
-                                    .h(px(3.))
-                                    .w(px(3.))
-                                    .rounded_full()
-                                    .bg(cx.theme().muted_foreground.opacity(0.4)),
-                            )
-                            .child(
-                                div()
                                     .text_xs()
                                     .text_color(cx.theme().muted_foreground)
-                                    .child(channel),
+                                    .child(summary),
                             )
-                            .when(
-                                !matches!(priority, NoticePriority::Low | NoticePriority::Unknown),
-                                |this| {
-                                    this.child(
+                            .child(
+                                h_flex()
+                                    .items_center()
+                                    .gap_1()
+                                    .child(
                                         div()
                                             .text_xs()
-                                            .text_color(priority_color(cx, priority))
-                                            .child(priority.display_name()),
+                                            .text_color(color)
+                                            .child(kind.display_name()),
                                     )
-                                },
+                                    .child(
+                                        div()
+                                            .h(px(3.))
+                                            .w(px(3.))
+                                            .rounded(px(2.))
+                                            .bg(cx.theme().muted_foreground.opacity(0.4)),
+                                    )
+                                    .child(
+                                        div()
+                                            .text_xs()
+                                            .text_color(cx.theme().muted_foreground)
+                                            .child(channel),
+                                    )
+                                    .when(
+                                        !matches!(
+                                            priority,
+                                            NoticePriority::Low | NoticePriority::Unknown
+                                        ),
+                                        |this| {
+                                            this.child(
+                                                div()
+                                                    .text_xs()
+                                                    .text_color(priority_color(cx, priority))
+                                                    .child(priority.display_name()),
+                                            )
+                                        },
+                                    ),
                             ),
+                    )
+                    .child(
+                        // 未读小圆点
+                        div()
+                            .flex_shrink_0()
+                            .size(px(8.))
+                            .rounded(px(4.))
+                            .bg(if unread {
+                                cx.theme().red
+                            } else {
+                                gpui::transparent_black()
+                            }),
                     ),
-            )
-            .child(
-                // 未读小圆点
-                div()
-                    .flex_shrink_0()
-                    .size(px(8.))
-                    .rounded_full()
-                    .bg(if unread {
-                        cx.theme().red
-                    } else {
-                        gpui::transparent_black()
-                    }),
             )
             .with_animation(
                 ElementId::NamedInteger("notice-in".into(), row as u64),
