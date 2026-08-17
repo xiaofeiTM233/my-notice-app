@@ -1,0 +1,21 @@
+[package]
+name = "notice-app"
+description = "my-notice-app 主程序：基于 GPUI + gpui-component 的桌面通知盒"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "my-notice-app"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+chrono.workspace = true
+gpui.workspace = true
+gpui_platform.workspace = true
+gpui-component.workspace = true
+gpui-component-assets.workspace = true
+notice-model = { path = "../notice-model" }
+notice-sse = { path = "../notice-sse" }
+serde_json.workspace = true

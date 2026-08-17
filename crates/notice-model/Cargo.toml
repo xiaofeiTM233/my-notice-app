@@ -1,0 +1,10 @@
+[package]
+name = "notice-model"
+description = "通知数据模型：test.json 通知数据结构的解析与映射"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true

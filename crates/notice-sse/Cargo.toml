@@ -1,0 +1,15 @@
+[package]
+name = "notice-sse"
+description = "SSE 客户端连接模块：连接通知服务端、解析 SSE 事件流、自动重连"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+notice-model = { path = "../notice-model" }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "stream", "charset"] }
+tokio = { version = "1", features = ["rt", "time", "sync"] }
+futures-util = "0.3"
+bytes = "1"
+serde_json.workspace = true
