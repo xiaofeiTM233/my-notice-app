@@ -38,6 +38,7 @@ jobs:
             build-essential \
             pkg-config \
             libxkbcommon-dev \
+            libxkbcommon-x11-dev \
             libxcb1-dev \
             libxcb-render0-dev \
             libxcb-shape0-dev \
