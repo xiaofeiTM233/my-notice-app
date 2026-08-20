@@ -1,0 +1,56 @@
+[package]
+name = "my-notice-app"
+version = "0.1.0"
+edition = "2024"
+description = "A desktop notification box built with Rust, GPUI and gpui-component"
+authors = ["my-notice-app contributors"]
+license = "Apache-2.0 OR MIT"
+repository = "https://github.com/your-org/my-notice-app"
+readme = "README.md"
+keywords = ["gpui", "sse", "notification", "desktop", "gui"]
+categories = ["gui"]
+
+[lib]
+name = "my_notice_app"
+path = "src/lib.rs"
+
+[[bin]]
+name = "my-notice-app"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+chrono = { version = "0.4", features = ["serde", "clock"] }
+env_logger = "0.11"
+futures-util = "0.3"
+gpui = "0.2.2"
+gpui-component = "0.5.1"
+gpui-component-assets = "0.5.1"
+log = "0.4"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json", "stream"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+smol = "2"
+tokio = { version = "1", features = ["rt-multi-thread", "time", "net", "macros"] }
+tokio-util = "0.7"
+url = "2"
+uuid = { version = "1", features = ["v4"] }
+
+[dev-dependencies]
+pretty_assertions = "1"
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package.gpui]
+opt-level = 3
+
+[profile.dev.package.gpui-component]
+opt-level = 3
+
+[profile.dev.package.smol]
+opt-level = 3
+
+[profile.release]
+opt-level = 3
+lto = "thin"
