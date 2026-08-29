@@ -1,0 +1,48 @@
+name: build
+
+on:
+  push:
+    branches: [main, "ai/**"]
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: 构建发布版
+        run: cargo build --release
+
+      - name: 打包
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory dist | Out-Null
+          Copy-Item target/release/wnotify.exe dist/
+          Copy-Item config.toml dist/
+          Compress-Archive -Path dist/* -DestinationPath wnotify-windows-x64.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wnotify-windows-x64
+          path: wnotify-windows-x64.zip
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: wnotify-windows-x64.zip
