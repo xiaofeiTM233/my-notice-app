@@ -1,0 +1,43 @@
+// 共享数据结构与配色
+export struct NItem {
+    id: string,
+    title: string,
+    body: string,
+    cat: int,        // 0 消息 1 提醒 2 系统
+    prio: int,       // 0 低 1 普通 2 高
+    ts: int,
+    read: bool,
+    rel: string,     // 相对时间文本
+    url: string,
+}
+
+export global Pal {
+    out property <color> bg: #15171e;
+    out property <color> panel: #1c1f28;
+    out property <color> card: #ffffff0d;
+    out property <color> card-hover: #ffffff16;
+    out property <color> line: #ffffff14;
+    out property <color> fg: #e7e9ee;
+    out property <color> fg-dim: #9aa1ad;
+    out property <color> fg-faint: #6b7280;
+    out property <color> accent: #3b82f6;
+    out property <color> danger: #ef4444;
+
+    pure public function cat-color(c: int) -> color {
+        if (c == 1) { return #f59e0b; }
+        if (c == 2) { return #8b5cf6; }
+        return #3b82f6;
+    }
+
+    pure public function cat-name(c: int) -> string {
+        if (c == 1) { return "提醒"; }
+        if (c == 2) { return "系统"; }
+        return "消息";
+    }
+
+    pure public function prio-name(p: int) -> string {
+        if (p == 2) { return "高"; }
+        if (p == 1) { return "普通"; }
+        return "低";
+    }
+}

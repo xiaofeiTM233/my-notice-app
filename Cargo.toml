@@ -1,0 +1,28 @@
+[package]
+name = "wnotify"
+version = "0.1.0"
+edition = "2024"
+build = "build.rs"
+
+[dependencies]
+open = "5.4.2"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+slint = "1.17.1"
+toml = "1.1.4"
+tungstenite = { version = "0.30.0", features = ["rustls-tls-webpki-roots"] }
+ureq = "3.4.0"
+
+# TLS 统一走 ring，避免引入 aws-lc 构建链
+rustls = { version = "0.23", default-features = false, features = ["ring", "logging", "std", "tls12"] }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.60", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging"] }
+
+[build-dependencies]
+slint-build = "1.17.1"
+
+[profile.release]
+opt-level = 2
+lto = "thin"
+strip = true

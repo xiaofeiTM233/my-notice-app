@@ -1,0 +1,352 @@
+import { NItem, Pal } from "common.slint";
+import { LineEdit, ListView, Palette } from "std-widgets.slint";
+import { Popup } from "popup.slint";
+import { TrayArea } from "tray.slint";
+
+export { Popup, TrayArea, NItem }
+
+// 分类筛选胶囊按钮
+component Tab inherits Rectangle {
+    in property <string> label;
+    in property <int> v;
+    in-out property <int> cur;
+    callback pick(int);
+    border-radius: 13px;
+    height: 26px;
+    min-width: 52px;
+    background: cur == v ? Pal.accent : transparent;
+    border-width: 1px;
+    border-color: cur == v ? Pal.accent : Pal.line;
+    ta := TouchArea {
+        clicked => { root.pick(root.v); }
+    }
+    Text {
+        text: root.label;
+        font-size: 12px;
+        color: root.cur == v ? white : Pal.fg-dim;
+        vertical-alignment: center;
+        horizontal-alignment: center;
+    }
+}
+
+// 通知卡片
+component Card inherits Rectangle {
+    in property <NItem> it;
+    callback open-it();
+    callback remove();
+    height: 84px;
+    border-radius: 12px;
+    background: ta.has-hover ? Pal.card-hover : Pal.card;
+    border-width: 1px;
+    border-color: it.read ? transparent : #ffffff1a;
+
+    ta := TouchArea {
+        clicked => { root.open_it(); }
+        mouse-cursor: it.url == "" ? default : pointer;
+    }
+
+    // 未读左侧色条
+    Rectangle {
+        x: 0; y: 12px;
+        width: 3px;
+        height: parent.height - 24px;
+        border-radius: 2px;
+        background: Pal.cat-color(root.it.cat);
+        opacity: root.it.read ? 0 : 1;
+        animate opacity { duration: 150ms; }
+    }
+
+    HorizontalLayout {
+        padding: 12px;
+        padding-left: 16px;
+        spacing: 12px;
+
+        VerticalLayout {
+            spacing: 4px;
+            alignment: center;
+            HorizontalLayout {
+                spacing: 8px;
+                Text {
+                    text: root.it.title;
+                    font-size: 13.5px;
+                    font-weight: root.it.read ? 400 : 700;
+                    color: root.it.read ? Pal.fg-dim : Pal.fg;
+                    overflow: elide;
+                    vertical-alignment: center;
+                    horizontal-stretch: 1;
+                }
+                if root.it.prio == 2: Rectangle {
+                    width: 22px;
+                    height: 15px;
+                    y: (parent.height - self.height) / 2;
+                    border-radius: 4px;
+                    background: Pal.danger;
+                    Text {
+                        text: "高";
+                        font-size: 9.5px;
+                        color: white;
+                        vertical-alignment: center;
+                        horizontal-alignment: center;
+                    }
+                }
+                if !root.it.read: Rectangle {
+                    width: 8px;
+                    height: 8px;
+                    y: (parent.height - self.height) / 2;
+                    border-radius: 4px;
+                    background: Pal.accent;
+                }
+            }
+            Text {
+                text: root.it.body;
+                font-size: 12px;
+                color: Pal.fg-dim;
+                wrap: word-wrap;
+                overflow: elide;
+                height: 32px;
+            }
+            HorizontalLayout {
+                spacing: 8px;
+                alignment: start;
+                Text {
+                    text: Pal.cat-name(root.it.cat) + " · " + root.it.rel;
+                    font-size: 11px;
+                    color: Pal.fg-faint;
+                    vertical-alignment: center;
+                }
+                Rectangle { horizontal-stretch: 1; }
+                // 删除按钮
+                Rectangle {
+                    width: 22px;
+                    height: 22px;
+                    opacity: ta.has-hover ? 1 : 0;
+                    animate opacity { duration: 120ms; }
+                    border-radius: 6px;
+                    background: del-a.has-hover ? Pal.danger : #ffffff1f;
+                    del-a := TouchArea {
+                        clicked => { root.remove(); }
+                        mouse-cursor: pointer;
+                    }
+                    Text {
+                        text: "×";
+                        font-size: 14px;
+                        color: white;
+                        vertical-alignment: center;
+                        horizontal-alignment: center;
+                    }
+                }
+            }
+        }
+    }
+}
+
+export component Center inherits Window {
+    title: "通知中心";
+    icon: @image-url("../../assets/icon.png");
+    width: 800px;
+    height: 580px;
+    background: Pal.bg;
+
+    init => { Palette.color-scheme = ColorScheme.dark; }
+
+    in-out property <[NItem]> items;
+    in-out property <string> conn: "connecting";
+    in-out property <int> unread: 0;
+    in-out property <int> total: 0;
+    in-out property <string> search-txt;
+    in-out property <int> cat-filter: -1;
+
+    callback open-item(id: string, url: string);
+    callback del(id: string);
+    callback clear-all();
+    callback mark-all();
+    callback search-changed(string);
+    callback cat-changed(int);
+    callback quit();
+
+    // 连接状态
+    pure public function conn-color() -> color {
+        if (self.conn == "connected") { return #22c55e; }
+        if (self.conn == "offline") { return Pal.danger; }
+        return #f59e0b;
+    }
+    pure public function conn-text() -> string {
+        if (self.conn == "connected") { return "WebSocket 已连接"; }
+        if (self.conn == "polling") { return "HTTP 轮询中"; }
+        if (self.conn == "offline") { return "连接已断开"; }
+        return "连接中…";
+    }
+
+    VerticalLayout {
+        // 顶栏
+        HorizontalLayout {
+            height: 60px;
+            padding: 16px;
+            padding-bottom: 8px;
+            spacing: 12px;
+            Text {
+                text: "通知中心";
+                font-size: 19px;
+                font-weight: 800;
+                color: Pal.fg;
+                vertical-alignment: center;
+            }
+            if root.unread > 0: Rectangle {
+                width: 34px;
+                height: 18px;
+                y: (parent.height - self.height) / 2;
+                border-radius: 9px;
+                background: Pal.accent;
+                Text {
+                    text: root.unread;
+                    font-size: 11px;
+                    font-weight: 700;
+                    color: white;
+                    vertical-alignment: center;
+                    horizontal-alignment: center;
+                }
+            }
+            Rectangle { horizontal-stretch: 1; }
+            LineEdit {
+                width: 190px;
+                placeholder-text: "搜索通知…";
+                text <=> root.search-txt;
+                edited(t) => { root.search-changed(t); }
+                font-size: 12.5px;
+            }
+        }
+
+        // 筛选 + 操作行
+        HorizontalLayout {
+            height: 40px;
+            padding-top: 8px;
+            padding-bottom: 8px;
+            padding-left: 16px;
+            padding-right: 16px;
+            spacing: 8px;
+            Tab { label: "全部"; v: -1; cur: root.cat-filter; pick(c) => { root.cat-changed(c); } }
+            Tab { label: "消息"; v: 0; cur: root.cat-filter; pick(c) => { root.cat-changed(c); } }
+            Tab { label: "提醒"; v: 1; cur: root.cat-filter; pick(c) => { root.cat-changed(c); } }
+            Tab { label: "系统"; v: 2; cur: root.cat-filter; pick(c) => { root.cat-changed(c); } }
+            Rectangle { horizontal-stretch: 1; }
+            // 全部已读
+            Rectangle {
+                width: 74px;
+                height: 26px;
+                border-radius: 13px;
+                background: root.unread > 0 && rb.has-hover ? #ffffff18 : transparent;
+                border-width: 1px;
+                border-color: Pal.line;
+                rb := TouchArea {
+                    enabled: root.unread > 0;
+                    clicked => { root.mark-all(); }
+                    mouse-cursor: pointer;
+                }
+                Text {
+                    text: "全部已读";
+                    font-size: 12px;
+                    color: root.unread > 0 ? Pal.fg : Pal.fg-faint;
+                    vertical-alignment: center;
+                    horizontal-alignment: center;
+                }
+            }
+            // 清空
+            Rectangle {
+                width: 56px;
+                height: 26px;
+                border-radius: 13px;
+                background: cb.has-hover ? #ef444422 : transparent;
+                border-width: 1px;
+                border-color: Pal.line;
+                cb := TouchArea {
+                    enabled: root.total > 0;
+                    clicked => { root.clear-all(); }
+                    mouse-cursor: pointer;
+                }
+                Text {
+                    text: "清空";
+                    font-size: 12px;
+                    color: root.total > 0 ? Pal.danger : Pal.fg-faint;
+                    vertical-alignment: center;
+                    horizontal-alignment: center;
+                }
+            }
+        }
+
+        // 列表
+        Rectangle {
+            VerticalLayout {
+                padding-top: 4px;
+                padding-bottom: 8px;
+                padding-left: 16px;
+                padding-right: 16px;
+                ListView {
+                    for it in root.items: Card {
+                        it: it;
+                        open-it => { root.open-item(it.id, it.url); }
+                        remove => { root.del(it.id); }
+                    }
+                }
+            }
+            // 空状态
+            if root.total == 0: Rectangle {
+                background: Pal.bg;
+                VerticalLayout {
+                    alignment: center;
+                    spacing: 10px;
+                    Text {
+                        text: "暂无通知";
+                        font-size: 17px;
+                        font-weight: 700;
+                        color: Pal.fg-dim;
+                        horizontal-alignment: center;
+                    }
+                    Text {
+                        text: "接入后端后，新通知会实时推送到这里";
+                        font-size: 12px;
+                        color: Pal.fg-faint;
+                        horizontal-alignment: center;
+                    }
+                }
+            }
+            if root.total > 0 && root.items.length == 0: Rectangle {
+                background: Pal.bg;
+                Text {
+                    text: "没有匹配的通知";
+                    font-size: 13px;
+                    color: Pal.fg-faint;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+        }
+
+        // 状态栏
+        HorizontalLayout {
+            height: 30px;
+            padding-left: 16px;
+            padding-right: 16px;
+            spacing: 6px;
+            Text {
+                text: "共 " + root.total + " 条";
+                font-size: 11px;
+                color: Pal.fg-faint;
+                vertical-alignment: center;
+            }
+            Rectangle { horizontal-stretch: 1; }
+            Rectangle {
+                width: 7px;
+                height: 7px;
+                y: (parent.height - self.height) / 2;
+                border-radius: 4px;
+                background: root.conn-color();
+            }
+            Text {
+                text: root.conn-text();
+                font-size: 11px;
+                color: Pal.fg-faint;
+                vertical-alignment: center;
+            }
+        }
+    }
+}

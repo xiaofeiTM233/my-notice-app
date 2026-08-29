@@ -1,0 +1,150 @@
+import { NItem, Pal } from "common.slint";
+
+export component Popup inherits Window {
+    no-frame: true;
+    always-on-top: true;
+    background: transparent;
+    width: 384px;
+    height: 136px;
+
+    in-out property <NItem> cur;
+    in-out property <bool> shown;
+    callback dismiss();
+    callback activate();
+
+    property <length> slide: shown ? 12px : self.width + 40px;
+    animate slide { duration: 340ms; easing: ease-out; }
+
+    Rectangle {
+        x: slide;
+        y: 12px;
+        width: 360px;
+        height: 112px;
+        opacity: shown ? 1 : 0;
+        animate opacity { duration: 160ms; }
+        border-radius: 14px;
+        background: #14171fcc;
+        border-width: 1px;
+        border-color: #ffffff1f;
+        drop-shadow-blur: 22px;
+        drop-shadow-color: #000000b0;
+
+        // 优先级色条
+        Rectangle {
+            x: 0; y: 0;
+            width: 4px;
+            height: parent.height;
+            border-radius: 2px;
+            background: root.cur.prio == 2 ? Pal.danger : Pal.accent;
+            opacity: root.cur.prio == 0 ? 0.35 : 0.9;
+        }
+
+        HorizontalLayout {
+            padding: 14px;
+            padding-left: 18px;
+            spacing: 12px;
+
+            // 分类图标
+            Rectangle {
+                width: 38px;
+                Rectangle {
+                    width: 38px;
+                    height: 38px;
+                    y: (parent.height - self.height) / 2;
+                    border-radius: 12px;
+                    background: Pal.cat-color(root.cur.cat);
+                    opacity: 0.22;
+                    Text {
+                        text: Pal.cat-name(root.cur.cat);
+                        font-size: 15px;
+                        font-weight: 700;
+                        color: Pal.cat-color(root.cur.cat);
+                        opacity: 1;
+                        vertical-alignment: center;
+                        horizontal-alignment: center;
+                    }
+                }
+            }
+
+            VerticalLayout {
+                spacing: 5px;
+                alignment: center;
+
+                HorizontalLayout {
+                    spacing: 8px;
+                    Text {
+                        text: root.cur.title;
+                        font-size: 14px;
+                        font-weight: 700;
+                        color: Pal.fg;
+                        overflow: elide;
+                        vertical-alignment: center;
+                        horizontal-stretch: 1;
+                    }
+                    if root.cur.prio == 2: Rectangle {
+                        width: 24px;
+                        height: 16px;
+                        y: (parent.height - self.height) / 2;
+                        border-radius: 5px;
+                        background: Pal.danger;
+                        Text {
+                            text: "高";
+                            font-size: 10px;
+                            color: white;
+                            vertical-alignment: center;
+                            horizontal-alignment: center;
+                        }
+                    }
+                    Rectangle {
+                        width: 20px;
+                        TouchArea {
+                            clicked => { root.dismiss(); }
+                            Rectangle {
+                                border-radius: 5px;
+                                background: parent.has-hover ? #ffffff22 : transparent;
+                                Text {
+                                    text: "×";
+                                    font-size: 14px;
+                                    color: Pal.fg-dim;
+                                    vertical-alignment: center;
+                                    horizontal-alignment: center;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Text {
+                    text: root.cur.body;
+                    font-size: 12.5px;
+                    color: Pal.fg-dim;
+                    wrap: word-wrap;
+                    overflow: elide;
+                    height: 34px;
+                }
+
+                HorizontalLayout {
+                    spacing: 8px;
+                    alignment: start;
+                    Text {
+                        text: Pal.cat-name(root.cur.cat) + " · " + root.cur.rel;
+                        font-size: 11px;
+                        color: Pal.fg-faint;
+                        vertical-alignment: center;
+                    }
+                    Rectangle { horizontal-stretch: 1; }
+                    if root.cur.url != "": Text {
+                        text: "点击查看 →";
+                        font-size: 11px;
+                        color: Pal.accent;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+        }
+
+        TouchArea {
+            clicked => { root.activate(); }
+        }
+    }
+}

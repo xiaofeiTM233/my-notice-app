@@ -1,0 +1,20 @@
+import { Pal } from "common.slint";
+
+export component TrayArea inherits SystemTrayIcon {
+    in-out property <int> unread: 0;
+    icon: @image-url("../../assets/tray.png");
+    tooltip: unread > 0 ? "通知中心 · " + unread + " 条未读" : "通知中心";
+
+    callback open-center();
+    callback mark-all();
+    callback quit();
+
+    clicked => { open-center(); }
+
+    Menu {
+        MenuItem { title: "打开通知中心"; activated => { root.open-center(); } }
+        MenuItem { title: "全部已读"; activated => { root.mark-all(); } }
+        MenuSeparator {}
+        MenuItem { title: "退出"; activated => { root.quit(); } }
+    }
+}
